@@ -1,0 +1,16 @@
+# Sandbox environment — shared across all 3 nodes.
+# Values in <ANGLE_BRACKETS> are placeholders; fill in once the Network Plan
+# in PLAN.md is finalized.
+
+nic_name: eth0
+domain: "<DOMAIN>"
+node_netmask: "<LAB_NETMASK>"
+node_gateway: "<LAB_GATEWAY>"
+node_dns: "<LAB_DNS>"
+timezone: UTC
+
+bootstrap_user: ryan
+bootstrap_user_ssh_pubkey: "<ANSIBLE_SSH_PUBKEY>"
+
+ansible_user: "{{ bootstrap_user }}"
+ansible_host: "{{ node_ip }}"

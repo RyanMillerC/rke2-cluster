@@ -1,0 +1,24 @@
+---
+# Renders one kickstart file per node from inventory + templates/rhel9.ks.j2.
+# Runs entirely locally — the nodes aren't reachable yet, this just produces
+# the files to serve during OS install.
+#
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml kickstart/render_kickstarts.yml
+
+- name: Render per-node kickstart files
+  hosts: rke2_cluster
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Ensure rendered/ directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/rendered"
+        state: directory
+        mode: "0755"
+      run_once: true
+
+    - name: Render kickstart file
+      ansible.builtin.template:
+        src: templates/rhel9.ks.j2
+        dest: "{{ playbook_dir }}/rendered/{{ inventory_hostname }}.ks"
+        mode: "0644"

@@ -1,0 +1,46 @@
+#version=RHEL9
+# Kickstart for {{ inventory_hostname }} — minimum config only.
+# Scope: disk layout + whatever is needed for Ansible to get SSH + sudo access.
+# Everything else (chrony, firewalld, NetworkManager, subscription, iscsi/nfs
+# packages, RKE2 itself) is Ansible's job — see PLAN.md "Host Prep (RHEL)".
+
+text
+lang en_US.UTF-8
+keyboard --xlayouts='us'
+
+# Disk — wipe and let Anaconda lay out LVM + /boot/efi for Gen2 UEFI
+zerombr
+clearpart --all --initlabel
+autopart --type=lvm --fstype=xfs
+bootloader --timeout=1
+
+# Network — static, per-environment NIC name (eth0 sandbox, verify on lab hardware)
+network --device={{ nic_name }} --bootproto=static --ip={{ node_ip }} --netmask={{ node_netmask }} --gateway={{ node_gateway }} --nameserver={{ node_dns }} --hostname={{ node_hostname }} --activate --onboot=yes
+
+timezone {{ timezone }} --utc
+
+# SELinux enforcing from first boot — avoids a relabel-and-reboot cycle later
+selinux --enforcing
+
+# Root login fully locked. No password, no SSH. The bootstrap user below is
+# the only way in.
+rootpw --lock
+
+# Bootstrap user — SSH-key login only (locked password), wheel for sudo
+user --name={{ bootstrap_user }} --groups=wheel --lock
+sshkey --username={{ bootstrap_user }} "{{ bootstrap_user_ssh_pubkey }}"
+
+%packages
+@^minimal-environment
+python3
+openssh-server
+%end
+
+# Passwordless sudo for the bootstrap user, so Ansible's `become` doesn't need
+# an interactive password.
+%post
+echo "{{ bootstrap_user }} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/{{ bootstrap_user }}
+chmod 440 /etc/sudoers.d/{{ bootstrap_user }}
+%end
+
+reboot

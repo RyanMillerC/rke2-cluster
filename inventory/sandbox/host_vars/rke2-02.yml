@@ -1,0 +1,2 @@
+node_ip: "<NODE2_IP>"
+node_hostname: "rke2-02.{{ domain }}"

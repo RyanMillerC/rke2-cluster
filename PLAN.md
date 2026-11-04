@@ -10,11 +10,11 @@
 
 Build once, run in two places. Both must come from the same roles with per-environment inventory and group_vars.
 
-| | Lab (now) | Hardware (later) |
+| | Sandbox (now) | Lab (later) |
 |---|---|---|
 | **Cert issuer** | Let's Encrypt **staging** | Let's Encrypt **production** |
 | **Hosts** | 3x Hyper-V VMs, 8 vCPU / 16GB static RAM | 3x Beelink EQR5, Ryzen 3 7330U (4c/8t), 16GB, 500GB SSD |
-| **NIC name** | `eth0` | Different (e.g. `enp1s0`), verify on hardware |
+| **NIC name** | `eth0` | Different (e.g. `enp1s0`), verify on real hardware |
 
 ---
 
@@ -80,7 +80,7 @@ Order matters. Each step depends on the one before it.
 
 ---
 
-## Hyper-V VM Settings (Lab Only)
+## Hyper-V VM Settings (Sandbox Only)
 
 - **Automatic checkpoints:** off. Restoring one node's checkpoint corrupts etcd. Snapshot only with all 3 VMs shut down
 - **Dynamic Memory:** off. Fixed 16GB
@@ -100,11 +100,10 @@ Gets a node from bare VM/hardware to "Ansible can reach it" — nothing more. Sp
 - **Hostname + static network config:** so the node lands at its known inventory IP
 - **Initial user + SSH key injection:** the hard dependency — without this, Ansible has nothing to connect to
 - **SELinux:** set to `enforcing` at install, avoiding a relabel-and-reboot cycle later
-- **Subscription registration:** `rhsm` kickstart command, source per Open Items
 - **Packages:** minimal — just Python + SSH. No chrony, no RKE2, nothing environment-specific
-- **Delivery:** one templated `.ks.cfg`, per-node values (hostname, static IP) substituted in. Lab: served to Hyper-V Gen2 VMs via local HTTP or a mounted secondary virtual DVD. Hardware: USB stick, verify delivery method on the Beelink boxes
+- **Delivery:** one templated `.ks.cfg`, per-node values (hostname, static IP) substituted in. Sandbox: served to Hyper-V Gen2 VMs via local HTTP or a mounted secondary virtual DVD. Lab: USB stick, verify delivery method on the Beelink boxes
 
-**NOT kickstart's job:** chrony, firewalld, NetworkManager unmanaged-interface rules, `iscsi-initiator-utils`/`nfs-utils`, swap removal, RKE2 install/config, or anything else in Host Prep below — all revisable without touching the OS install.
+**NOT kickstart's job:** chrony, firewalld, NetworkManager unmanaged-interface rules, subscription registration, `iscsi-initiator-utils`/`nfs-utils`, swap removal, RKE2 install/config, or anything else in Host Prep below — all revisable without touching the OS install.
 
 ---
 
@@ -144,7 +143,7 @@ Set on **every** server node:
 
 ### cert-manager
 - DNS-01 solver, existing working config from K3s
-- Issuer selected per environment: staging (lab), production (hardware)
+- Issuer selected per environment: staging (sandbox), production (lab)
 - Verify `ingressClassName` used by Ingresses matches the class RKE2's Traefik registers
 
 ### Cilium (via RKE2 HelmChartConfig)
