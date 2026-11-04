@@ -27,7 +27,7 @@ Build once, run in two places. Both must come from the same roles with per-envir
 | **Certs (apps)** | cert-manager, DNS-01, wildcard `*.apps.taco.moe`. Reuse existing working K3s config |
 | **CNI** | Cilium, kube-proxy replacement **on**, L2 announcements **on**, Hubble **on** |
 | **Distribution** | RKE2, **pinned to v1.36 or later** |
-| **Firewall** | firewalld **disabled**. Perimeter is UniFi VLAN rules. Cilium host firewall is day 2 |
+| **Firewall** | firewalld **disabled**. No dedicated VLAN for now — nodes live on the flat LAN. Cilium host firewall is day 2 |
 | **Ingress** | RKE2 bundled Traefik (default in v1.36+) |
 | **Load balancer (Services)** | Cilium LB IPAM + L2 announcements. **No MetalLB** |
 | **Node roles** | All 3 nodes are servers (control plane + etcd + workloads). No taints |
@@ -46,16 +46,16 @@ Build once, run in two places. Both must come from the same roles with per-envir
 |---|---|
 | **Domain** | `taco.moe` |
 | **Cluster nickname** | `guac` |
-| **API VIP** (kube-vip) | `<API_VIP>` |
-| **API FQDN** | `api.guac.taco.moe` → `<API_VIP>` |
-| **Apps IP** (Cilium LB, shared) | `<APPS_IP>` |
-| **Apps wildcard** | `*.apps.taco.moe` → `<APPS_IP>` |
-| **Cilium LB pool** | `<LB_POOL_CIDR>` (must contain `<APPS_IP>`) |
-| **Cluster VLAN / subnet** | `<VLAN_ID>` / `<SUBNET>` |
-| **Node IPs** | `guac-1.taco.moe`: `<NODE1_IP>`, `guac-2.taco.moe`: `<NODE2_IP>`, `guac-3.taco.moe`: `<NODE3_IP>` (static) |
-| **Internal DNS** | **OPEN:** UniFi local DNS or existing resolver |
+| **API VIP** (kube-vip) | `192.168.0.98` |
+| **API FQDN** | `api.guac.taco.moe` → `192.168.0.98` |
+| **Apps IP** (Cilium LB, shared) | `192.168.0.99` |
+| **Apps wildcard** | `*.apps.taco.moe` → `192.168.0.99` |
+| **Cilium LB pool** | `192.168.0.99/32` — single address, matches the one shared Apps IP |
+| **Cluster subnet** | `192.168.0.0/24` (flat network, no dedicated VLAN for now) — **confirm** |
+| **Node IPs** | `guac-1.taco.moe`: `192.168.0.91`, `guac-2.taco.moe`: `192.168.0.92`, `guac-3.taco.moe`: `192.168.0.93` — set via UniFi DHCP reservation, outside the normal DHCP pool |
+| **Internal DNS** | `10.10.10.10` — resolver returned by DHCP, same one that already serves `taco.moe` internally (e.g. `bitwarden.taco.moe`). New records (`api.guac.taco.moe`, `*.apps.taco.moe`, node names) added there too |
 
-**UNIFI RULES:** Dedicated VLAN for the cluster. Allow inbound from admin network only to `<API_VIP>:6443`, `<APPS_IP>` (all exposed ports), and SSH to nodes. Everything else stays inside the cluster subnet.
+**UNIFI RULES:** No dedicated VLAN for now — accepted tradeoff, revisit as day 2 hardening (see Out of Scope). Node IPs are DHCP reservations outside the pool; `192.168.0.98` and `192.168.0.99` are plain static addresses outside the pool too (no DHCP client involved, so no reservation needed or possible for either).
 
 ---
 
@@ -88,9 +88,9 @@ Order matters. Each step depends on the one before it.
 - **Dynamic Memory:** off. Fixed 16GB
 - **Generation:** 2, Secure Boot template **Microsoft UEFI Certificate Authority**
 - **MAC address spoofing:** on (needed for VIP failover)
-- **MAC addresses:** static
+- **MAC addresses:** static (required — UniFi DHCP reservations key off this)
 - **Time synchronization integration service:** off (chrony owns time)
-- **Virtual switch:** External, VLAN ID set per VM adapter, UniFi port carries the VLAN tagged
+- **Virtual switch:** External, no VLAN tagging for now (flat network)
 
 ---
 
@@ -131,7 +131,7 @@ Set on **every** server node:
 - **Embedded registry mirror:** enabled (reduces Docker Hub pulls on rebuild)
 - **kube-proxy:** disabled (Cilium replaces it)
 - **Metrics exposure:** expose etcd, kube-scheduler, and kube-controller-manager metrics beyond localhost. Not used until day 2, but must be set before first start
-- **tls-san:** `<API_VIP>` and `api.guac.taco.moe`. Must be identical on all 3 nodes; a missing entry fails only after VIP failover
+- **tls-san:** `192.168.0.98` and `api.guac.taco.moe`. Must be identical on all 3 nodes; a missing entry fails only after VIP failover
 - **Version:** pinned
 
 ---
@@ -154,13 +154,13 @@ Set on **every** server node:
 - kube-proxy replacement enabled
 - L2 announcements enabled; tune client rate limits for lease traffic if needed
 - LB IP pool (`CiliumLoadBalancerIPPool`) and `CiliumL2AnnouncementPolicy` delivered by Argo
-- **Shared apps IP:** Traefik and all non-HTTP LoadBalancer Services share `<APPS_IP>` via Cilium's LB IPAM sharing-key annotation. Pin the IP in manifests
+- **Shared apps IP:** Traefik and all non-HTTP LoadBalancer Services share `192.168.0.99` via Cilium's LB IPAM sharing-key annotation. Pin the IP in manifests
 
 ### kube-vip
 - Static pod in RKE2's kubelet pod-manifests directory on each server
 - ARP mode, control plane only, leader election on
 - Interface name is a per-environment variable
-- **Never** let Cilium announce `<API_VIP>`
+- **Never** let Cilium announce `192.168.0.98`
 
 ### Storage
 - **csi-driver-nfs:** default StorageClass, reclaim policy **Retain**, subdirectory naming by **namespace and PVC name** so rebuilt apps reattach to existing data
@@ -169,7 +169,7 @@ Set on **every** server node:
 
 ### Traefik
 - Bundled with RKE2, configured via HelmChartConfig
-- Exposed as a **LoadBalancer Service on `<APPS_IP>`**, host ports disabled
+- Exposed as a **LoadBalancer Service on `192.168.0.99`**, host ports disabled
 
 ### Vault + ESO
 - Vault in-cluster, integrated Raft storage on iSCSI
@@ -199,7 +199,7 @@ The build is done when all of these pass:
 
 - **Full rebuild:** destroy all 3 nodes, rerun Ansible, everything returns with no manual steps, including Vault seeding from the vars file
 - **Cert issued:** wildcard cert present and served by Traefik on `*.apps.taco.moe`
-- **LB reachability:** a non-HTTP LoadBalancer Service gets `<APPS_IP>` and is reachable from the admin network
+- **LB reachability:** a non-HTTP LoadBalancer Service gets `192.168.0.99` and is reachable from the admin network
 - **Node reboot:** Vault auto-unseals; ESO refreshes secrets
 - **PVC reattach:** after a rebuild, an NFS-backed app comes back with its old data
 - **VIP failover:** shut down the VIP holder; kubectl via `api.guac.taco.moe` keeps working after failover (proves tls-san on all nodes)
@@ -213,12 +213,12 @@ The build is done when all of these pass:
 - Loki, single-binary, on NAS
 - RKE2 upgrade automation
 - SSO for cluster access
+- VLAN segmentation for the cluster network (currently flat, accepted tradeoff)
 
 ---
 
 ## Open Items
 
-- Internal DNS location
-- IP plan values
+- IP plan values (API VIP, Apps IP, cluster subnet, node IPs)
 - RHEL subscription source
 - Whether **Full rebuild** (Acceptance Tests) means re-running kickstart (true bare-metal/VM reinstall) or assumes RHEL is already installed and only Ansible + RKE2 are torn down. Affects whether kickstart delivery needs to be automated end-to-end (e.g. Ansible driving Hyper-V PowerShell to recreate VMs)
