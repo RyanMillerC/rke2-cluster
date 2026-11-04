@@ -24,7 +24,7 @@ Build once, run in two places. Both must come from the same roles with per-envir
 |---|---|
 | **API VIP** | kube-vip, **static pod**, control plane only, ARP mode, Services mode **off** |
 | **App delivery** | Argo CD only, AppProjects `platform` and `apps` |
-| **Certs (apps)** | cert-manager, DNS-01, wildcard `*.apps.<DOMAIN>`. Reuse existing working K3s config |
+| **Certs (apps)** | cert-manager, DNS-01, wildcard `*.apps.taco.moe`. Reuse existing working K3s config |
 | **CNI** | Cilium, kube-proxy replacement **on**, L2 announcements **on**, Hubble **on** |
 | **Distribution** | RKE2, **pinned to v1.36 or later** |
 | **Firewall** | firewalld **disabled**. Perimeter is UniFi VLAN rules. Cilium host firewall is day 2 |
@@ -44,13 +44,15 @@ Build once, run in two places. Both must come from the same roles with per-envir
 
 | Item | Value |
 |---|---|
+| **Domain** | `taco.moe` |
+| **Cluster nickname** | `guac` |
 | **API VIP** (kube-vip) | `<API_VIP>` |
-| **API FQDN** | `api.<DOMAIN>` → `<API_VIP>` |
+| **API FQDN** | `api.guac.taco.moe` → `<API_VIP>` |
 | **Apps IP** (Cilium LB, shared) | `<APPS_IP>` |
-| **Apps wildcard** | `*.apps.<DOMAIN>` → `<APPS_IP>` |
+| **Apps wildcard** | `*.apps.taco.moe` → `<APPS_IP>` |
 | **Cilium LB pool** | `<LB_POOL_CIDR>` (must contain `<APPS_IP>`) |
 | **Cluster VLAN / subnet** | `<VLAN_ID>` / `<SUBNET>` |
-| **Node IPs** | `<NODE1_IP>`, `<NODE2_IP>`, `<NODE3_IP>` (static) |
+| **Node IPs** | `guac-1.taco.moe`: `<NODE1_IP>`, `guac-2.taco.moe`: `<NODE2_IP>`, `guac-3.taco.moe`: `<NODE3_IP>` (static) |
 | **Internal DNS** | **OPEN:** UniFi local DNS or existing resolver |
 
 **UNIFI RULES:** Dedicated VLAN for the cluster. Allow inbound from admin network only to `<API_VIP>:6443`, `<APPS_IP>` (all exposed ports), and SSH to nodes. Everything else stays inside the cluster subnet.
@@ -129,7 +131,7 @@ Set on **every** server node:
 - **Embedded registry mirror:** enabled (reduces Docker Hub pulls on rebuild)
 - **kube-proxy:** disabled (Cilium replaces it)
 - **Metrics exposure:** expose etcd, kube-scheduler, and kube-controller-manager metrics beyond localhost. Not used until day 2, but must be set before first start
-- **tls-san:** `<API_VIP>` and `api.<DOMAIN>`. Must be identical on all 3 nodes; a missing entry fails only after VIP failover
+- **tls-san:** `<API_VIP>` and `api.guac.taco.moe`. Must be identical on all 3 nodes; a missing entry fails only after VIP failover
 - **Version:** pinned
 
 ---
@@ -196,11 +198,11 @@ Stored in an **Ansible Vault-encrypted vars file**, never plaintext in Git. Back
 The build is done when all of these pass:
 
 - **Full rebuild:** destroy all 3 nodes, rerun Ansible, everything returns with no manual steps, including Vault seeding from the vars file
-- **Cert issued:** wildcard cert present and served by Traefik on `*.apps.<DOMAIN>`
+- **Cert issued:** wildcard cert present and served by Traefik on `*.apps.taco.moe`
 - **LB reachability:** a non-HTTP LoadBalancer Service gets `<APPS_IP>` and is reachable from the admin network
 - **Node reboot:** Vault auto-unseals; ESO refreshes secrets
 - **PVC reattach:** after a rebuild, an NFS-backed app comes back with its old data
-- **VIP failover:** shut down the VIP holder; kubectl via `api.<DOMAIN>` keeps working after failover (proves tls-san on all nodes)
+- **VIP failover:** shut down the VIP holder; kubectl via `api.guac.taco.moe` keeps working after failover (proves tls-san on all nodes)
 
 ---
 

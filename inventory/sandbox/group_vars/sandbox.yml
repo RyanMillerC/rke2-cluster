@@ -3,10 +3,10 @@
 # in PLAN.md is finalized.
 
 nic_name: eth0
-domain: "<DOMAIN>"
-node_netmask: "<LAB_NETMASK>"
-node_gateway: "<LAB_GATEWAY>"
-node_dns: "<LAB_DNS>"
+domain: "taco.moe"
+node_netmask: "<SANDBOX_NETMASK>"
+node_gateway: "<SANDBOX_GATEWAY>"
+node_dns: "<SANDBOX_DNS>"
 timezone: UTC
 
 bootstrap_user: ryan

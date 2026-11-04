@@ -1,2 +1,0 @@
-node_ip: "<NODE3_IP>"
-node_hostname: "rke2-03.{{ domain }}"

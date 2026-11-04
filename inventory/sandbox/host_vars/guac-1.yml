@@ -1,0 +1,2 @@
+node_ip: "<NODE1_IP>"
+node_hostname: "guac-1.{{ domain }}"
