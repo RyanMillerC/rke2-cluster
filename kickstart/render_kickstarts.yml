@@ -1,5 +1,5 @@
 ---
-# Renders one kickstart file per node from inventory + templates/rhel9.ks.j2.
+# Renders one kickstart file per node from inventory + templates/rhel10.ks.j2.
 # Runs entirely locally — the nodes aren't reachable yet, this just produces
 # the files to serve during OS install.
 #
@@ -19,6 +19,6 @@
 
     - name: Render kickstart file
       ansible.builtin.template:
-        src: templates/rhel9.ks.j2
+        src: templates/rhel10.ks.j2
         dest: "{{ playbook_dir }}/rendered/{{ inventory_hostname }}.ks"
         mode: "0644"

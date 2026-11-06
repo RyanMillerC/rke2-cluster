@@ -31,7 +31,7 @@ Build once, run in two places. Both must come from the same roles with per-envir
 | **Ingress** | RKE2 bundled Traefik (default in v1.36+) |
 | **Load balancer (Services)** | Cilium LB IPAM + L2 announcements. **No MetalLB** |
 | **Node roles** | All 3 nodes are servers (control plane + etcd + workloads). No taints |
-| **OS** | RHEL 9, SELinux enforcing |
+| **OS** | RHEL 10.2, SELinux enforcing |
 | **OS bootstrap** | Kickstart, **minimum config only** (networking, hostname, SSH key, SELinux enforcing, subscription). Everything else via Ansible |
 | **Secrets** | External Secrets Operator + Vault **in-cluster**, AWS KMS auto-unseal |
 | **Storage** | Synology NAS. NFS (csi-driver-nfs) default; iSCSI (Synology CSI) for databases, Prometheus, Vault |
@@ -103,7 +103,7 @@ Gets a node from bare VM/hardware to "Ansible can reach it" — nothing more. Sp
 - **Initial user + SSH key injection:** the hard dependency — without this, Ansible has nothing to connect to
 - **SELinux:** set to `enforcing` at install, avoiding a relabel-and-reboot cycle later
 - **Packages:** minimal — just Python + SSH. No chrony, no RKE2, nothing environment-specific
-- **Delivery:** one templated `.ks.cfg`, per-node values (hostname, static IP) substituted in. Sandbox: served to Hyper-V Gen2 VMs via local HTTP or a mounted secondary virtual DVD. Lab: USB stick, verify delivery method on the Beelink boxes
+- **Delivery:** one templated `ks.cfg` per node, via the **OEMDRV** convention — Anaconda auto-detects any attached volume labeled `OEMDRV` containing `/ks.cfg` at its root and applies it automatically. No kernel boot args, no network, no manual console step. Sandbox: a small VHDX per node, built and attached by `hyperv/New-SandboxVMs.ps1`. Lab: a USB stick formatted the same way for the Beelink boxes
 
 **NOT kickstart's job:** chrony, firewalld, NetworkManager unmanaged-interface rules, subscription registration, `iscsi-initiator-utils`/`nfs-utils`, swap removal, RKE2 install/config, or anything else in Host Prep below — all revisable without touching the OS install.
 
