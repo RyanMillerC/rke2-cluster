@@ -5,7 +5,8 @@
 Creates the 3 sandbox VMs (guac-1/2/3) per PLAN.md's "Hyper-V VM Settings
 (Sandbox Only)" section: Generation 2, Secure Boot, 8 vCPU, 16GB fixed RAM,
 no automatic checkpoints, no time-sync integration service, external
-vSwitch with no VLAN tag, static + spoofed MAC.
+vSwitch with no VLAN tag, fixed static MAC per node (see $Macs below) so
+the UniFi DHCP reservations survive delete/recreate cycles.
 
 Each VM gets the RHEL 10.2 ISO as its boot DVD, plus a second small virtual
 disk labeled OEMDRV containing that node's rendered ks.cfg. Anaconda
@@ -28,6 +29,15 @@ $DiskSizeGB = 100
 $KickstartDir = $PSScriptRoot
 
 $Nodes = @("guac-1", "guac-2", "guac-3")
+
+# Fixed MACs (Hyper-V's own OUI, last octet matching each node's static IP
+# .91/.92/.93) so the UniFi DHCP reservations survive delete/recreate cycles
+# instead of needing to be redone every time.
+$Macs = @{
+    "guac-1" = "00155D010091"
+    "guac-2" = "00155D010092"
+    "guac-3" = "00155D010093"
+}
 
 $existing = $Nodes | Where-Object { Get-VM -Name $_ -ErrorAction SilentlyContinue }
 if ($existing) {
@@ -81,12 +91,9 @@ foreach ($name in $Nodes) {
     $dvd = Get-VMDvdDrive -VMName $name
     Set-VMFirmware -VMName $name -FirstBootDevice $dvd
 
-    Set-VMNetworkAdapter -VMName $name -MacAddressSpoofing On
-    $mac = (Get-VMNetworkAdapter -VMName $name).MacAddress
-    Set-VMNetworkAdapter -VMName $name -StaticMacAddress $mac
+    Set-VMNetworkAdapter -VMName $name -StaticMacAddress $Macs[$name]
 
-    Write-Host "[$name] created. Static MAC: $mac" -ForegroundColor Green
-    Write-Host "[$name] add a UniFi DHCP reservation for this MAC before first boot" -ForegroundColor Green
+    Write-Host "[$name] created. Static MAC: $($Macs[$name])" -ForegroundColor Green
 }
 
 Write-Host "`nDone. Review settings in Hyper-V Manager, then Start-VM each node once its UniFi reservation is in place." -ForegroundColor Cyan
