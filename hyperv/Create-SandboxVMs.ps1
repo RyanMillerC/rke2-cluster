@@ -93,7 +93,9 @@ foreach ($name in $Nodes) {
 
     Set-VMNetworkAdapter -VMName $name -StaticMacAddress $Macs[$name]
 
-    Write-Host "[$name] created. Static MAC: $($Macs[$name])" -ForegroundColor Green
+    Start-VM -Name $name
+
+    Write-Host "[$name] created and started. Static MAC: $($Macs[$name])" -ForegroundColor Green
 }
 
-Write-Host "`nDone. Review settings in Hyper-V Manager, then Start-VM each node once its UniFi reservation is in place." -ForegroundColor Cyan
+Write-Host "`nDone. Nodes will DHCP into whatever address is free until their UniFi reservations are added — fix those up once the MACs show up in the client list." -ForegroundColor Cyan
