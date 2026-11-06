@@ -2,7 +2,7 @@
 #Requires -Modules Hyper-V
 
 <#
-Creates the 3 sandbox VMs (guac-1/2/3) per PLAN.md's "Hyper-V VM Settings
+Creates the 3 sandbox VMs (pico-1/2/3) per PLAN.md's "Hyper-V VM Settings
 (Sandbox Only)" section: Generation 2, Secure Boot, 8 vCPU, 16GB fixed RAM,
 no automatic checkpoints, no time-sync integration service, external
 vSwitch with no VLAN tag, fixed static MAC per node (see $Macs below) so
@@ -28,15 +28,15 @@ $SwitchName = 'Lab'
 $DiskSizeGB = 100
 $KickstartDir = $PSScriptRoot
 
-$Nodes = @("guac-1", "guac-2", "guac-3")
+$Nodes = @("pico-1", "pico-2", "pico-3")
 
 # Fixed MACs (Hyper-V's own OUI, last octet matching each node's static IP
 # .91/.92/.93) so the UniFi DHCP reservations survive delete/recreate cycles
 # instead of needing to be redone every time.
 $Macs = @{
-    "guac-1" = "00155D010091"
-    "guac-2" = "00155D010092"
-    "guac-3" = "00155D010093"
+    "pico-1" = "00155D010091"
+    "pico-2" = "00155D010092"
+    "pico-3" = "00155D010093"
 }
 
 $existing = $Nodes | Where-Object { Get-VM -Name $_ -ErrorAction SilentlyContinue }

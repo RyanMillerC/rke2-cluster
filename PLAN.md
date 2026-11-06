@@ -12,6 +12,7 @@ Build once, run in two places. Both must come from the same roles with per-envir
 
 | | Sandbox (now) | Lab (later) |
 |---|---|---|
+| **Cluster nickname** | `pico` | `guac` |
 | **Cert issuer** | Let's Encrypt **staging** | Let's Encrypt **production** |
 | **Hosts** | 3x Hyper-V VMs, 8 vCPU / 16GB static RAM | 3x Beelink EQR5, Ryzen 3 7330U (4c/8t), 16GB, 500GB SSD |
 | **NIC name** | `eth0` | Different (e.g. `enp1s0`), verify on real hardware |
@@ -45,15 +46,15 @@ Build once, run in two places. Both must come from the same roles with per-envir
 | Item | Value |
 |---|---|
 | **Domain** | `taco.moe` |
-| **Cluster nickname** | `guac` |
+| **Cluster nickname** | `pico` (Sandbox) — `guac` reserved for Lab |
 | **API VIP** (kube-vip) | `192.168.0.98` |
-| **API FQDN** | `api.guac.taco.moe` → `192.168.0.98` |
+| **API FQDN** | `api.pico.taco.moe` → `192.168.0.98` |
 | **Apps IP** (Cilium LB, shared) | `192.168.0.99` |
 | **Apps wildcard** | `*.apps.taco.moe` → `192.168.0.99` |
 | **Cilium LB pool** | `192.168.0.99/32` — single address, matches the one shared Apps IP |
 | **Cluster subnet** | `192.168.0.0/24` (flat network, no dedicated VLAN for now) — **confirm** |
-| **Node IPs** | `guac-1.taco.moe`: `192.168.0.91`, `guac-2.taco.moe`: `192.168.0.92`, `guac-3.taco.moe`: `192.168.0.93` — set via UniFi DHCP reservation, outside the normal DHCP pool |
-| **Internal DNS** | `10.10.10.10` — resolver returned by DHCP, same one that already serves `taco.moe` internally (e.g. `bitwarden.taco.moe`). New records (`api.guac.taco.moe`, `*.apps.taco.moe`, node names) added there too |
+| **Node IPs** | `pico-1.taco.moe`: `192.168.0.91`, `pico-2.taco.moe`: `192.168.0.92`, `pico-3.taco.moe`: `192.168.0.93` — set via UniFi DHCP reservation, outside the normal DHCP pool |
+| **Internal DNS** | `10.10.10.10` — resolver returned by DHCP, same one that already serves `taco.moe` internally (e.g. `bitwarden.taco.moe`). New records (`api.pico.taco.moe`, `*.apps.taco.moe`, node names) added there too |
 
 **UNIFI RULES:** No dedicated VLAN for now — accepted tradeoff, revisit as day 2 hardening (see Out of Scope). Node IPs are DHCP reservations outside the pool; `192.168.0.98` and `192.168.0.99` are plain static addresses outside the pool too (no DHCP client involved, so no reservation needed or possible for either).
 
@@ -131,7 +132,7 @@ Set on **every** server node:
 - **Embedded registry mirror:** enabled (reduces Docker Hub pulls on rebuild)
 - **kube-proxy:** disabled (Cilium replaces it)
 - **Metrics exposure:** expose etcd, kube-scheduler, and kube-controller-manager metrics beyond localhost. Not used until day 2, but must be set before first start
-- **tls-san:** `192.168.0.98` and `api.guac.taco.moe`. Must be identical on all 3 nodes; a missing entry fails only after VIP failover
+- **tls-san:** `192.168.0.98` and `api.pico.taco.moe`. Must be identical on all 3 nodes; a missing entry fails only after VIP failover
 - **Version:** pinned
 
 ---
@@ -202,7 +203,7 @@ The build is done when all of these pass:
 - **LB reachability:** a non-HTTP LoadBalancer Service gets `192.168.0.99` and is reachable from the admin network
 - **Node reboot:** Vault auto-unseals; ESO refreshes secrets
 - **PVC reattach:** after a rebuild, an NFS-backed app comes back with its old data
-- **VIP failover:** shut down the VIP holder; kubectl via `api.guac.taco.moe` keeps working after failover (proves tls-san on all nodes)
+- **VIP failover:** shut down the VIP holder; kubectl via `api.pico.taco.moe` keeps working after failover (proves tls-san on all nodes)
 
 ---
 

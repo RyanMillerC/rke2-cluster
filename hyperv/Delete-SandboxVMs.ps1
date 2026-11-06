@@ -2,7 +2,7 @@
 #Requires -Modules Hyper-V
 
 <#
-Tears down the 3 sandbox VMs (guac-1/2/3): stops each if running, removes
+Tears down the 3 sandbox VMs (pico-1/2/3): stops each if running, removes
 the VM, then deletes its OS and OEMDRV VHDs. A node that doesn't exist is
 skipped with a warning, not an error — safe to run even if creation only
 got partway through.
@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 
 $VhdRoot = 'V:\Hyper-V'
 
-$Nodes = @("guac-1", "guac-2", "guac-3")
+$Nodes = @("pico-1", "pico-2", "pico-3")
 
 foreach ($name in $Nodes) {
     $vm = Get-VM -Name $name -ErrorAction SilentlyContinue
