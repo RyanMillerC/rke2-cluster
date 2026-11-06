@@ -2,34 +2,37 @@
 #Requires -Modules Hyper-V
 
 <#
-Creates and configures the 3 sandbox VMs (guac-1/2/3) per PLAN.md's
-"Hyper-V VM Settings (Sandbox Only)" section: Generation 2, Secure Boot,
-8 vCPU, 16GB fixed RAM, no automatic checkpoints, no time-sync integration
-service, external vSwitch with no VLAN tag, static + spoofed MAC.
+Creates the 3 sandbox VMs (guac-1/2/3) per PLAN.md's "Hyper-V VM Settings
+(Sandbox Only)" section: Generation 2, Secure Boot, 8 vCPU, 16GB fixed RAM,
+no automatic checkpoints, no time-sync integration service, external
+vSwitch with no VLAN tag, static + spoofed MAC.
 
 Each VM gets the RHEL 10.2 ISO as its boot DVD, plus a second small virtual
 disk labeled OEMDRV containing that node's rendered ks.cfg. Anaconda
 auto-detects any attached volume labeled OEMDRV with /ks.cfg at its root
 and uses it — no kernel boot args, no network, no manual console step.
 
-Idempotent: a node already present in Get-VM is left untouched.
+Errors if any of the 3 VMs already exist — run Delete-SandboxVMs.ps1 first
+to tear down before recreating.
 
-Usage: .\New-SandboxVMs.ps1 -IsoPath 'V:\ISOs\rhel-10.2-x86_64-dvd.iso' `
-         -VhdRoot 'V:\Hyper-V' -SwitchName 'Lab'
+Edit the variables below, then run: .\Create-SandboxVMs.ps1
+Expects this node's .ks files sitting next to this script (same dir).
 #>
-
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string]$IsoPath,
-    [Parameter(Mandatory)][string]$VhdRoot,
-    [Parameter(Mandatory)][string]$SwitchName,
-    [int]$DiskSizeGB = 100,
-    [string]$KickstartDir = (Join-Path $PSScriptRoot "..\kickstart\rendered")
-)
 
 $ErrorActionPreference = "Stop"
 
+$IsoPath = 'V:\ISOs\rhel-10.2-x86_64-dvd.iso'
+$VhdRoot = 'V:\Hyper-V'
+$SwitchName = 'Lab'
+$DiskSizeGB = 100
+$KickstartDir = $PSScriptRoot
+
 $Nodes = @("guac-1", "guac-2", "guac-3")
+
+$existing = $Nodes | Where-Object { Get-VM -Name $_ -ErrorAction SilentlyContinue }
+if ($existing) {
+    throw "VM(s) already exist: $($existing -join ', ') — run Delete-SandboxVMs.ps1 first"
+}
 
 function New-OemdrvDisk {
     param(
@@ -55,11 +58,6 @@ if (-not (Test-Path $VhdRoot)) {
 }
 
 foreach ($name in $Nodes) {
-    if (Get-VM -Name $name -ErrorAction SilentlyContinue) {
-        Write-Host "[$name] already exists, skipping" -ForegroundColor Yellow
-        continue
-    }
-
     Write-Host "[$name] creating VM" -ForegroundColor Cyan
 
     $osVhd     = Join-Path $VhdRoot "$name.vhdx"
