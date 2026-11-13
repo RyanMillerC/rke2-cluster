@@ -4,7 +4,7 @@
 <#
 Tears down the 3 sandbox VMs (pico-1/2/3): stops each if running, removes
 the VM, then deletes its OS and OEMDRV VHDs. A node that doesn't exist is
-skipped with a warning, not an error — safe to run even if creation only
+skipped with a warning, not an error - safe to run even if creation only
 got partway through.
 
 Edit the variable below, then run: .\Delete-SandboxVMs.ps1

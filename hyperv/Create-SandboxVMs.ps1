@@ -11,9 +11,9 @@ the UniFi DHCP reservations survive delete/recreate cycles.
 Each VM gets the RHEL 10.2 ISO as its boot DVD, plus a second small virtual
 disk labeled OEMDRV containing that node's rendered ks.cfg. Anaconda
 auto-detects any attached volume labeled OEMDRV with /ks.cfg at its root
-and uses it — no kernel boot args, no network, no manual console step.
+and uses it - no kernel boot args, no network, no manual console step.
 
-Errors if any of the 3 VMs already exist — run Delete-SandboxVMs.ps1 first
+Errors if any of the 3 VMs already exist - run Delete-SandboxVMs.ps1 first
 to tear down before recreating.
 
 Edit the variables below, then run: .\Create-SandboxVMs.ps1
@@ -41,7 +41,7 @@ $Macs = @{
 
 $existing = $Nodes | Where-Object { Get-VM -Name $_ -ErrorAction SilentlyContinue }
 if ($existing) {
-    throw "VM(s) already exist: $($existing -join ', ') — run Delete-SandboxVMs.ps1 first"
+    throw "VM(s) already exist: $($existing -join ', ') - run Delete-SandboxVMs.ps1 first"
 }
 
 function New-OemdrvDisk {
@@ -88,8 +88,12 @@ foreach ($name in $Nodes) {
     Add-VMDvdDrive -VMName $name -Path $IsoPath
     Add-VMHardDiskDrive -VMName $name -Path $oemdrvVhd
 
-    $dvd = Get-VMDvdDrive -VMName $name
-    Set-VMFirmware -VMName $name -FirstBootDevice $dvd
+    # No explicit boot order needed: Hyper-V's default order is OS disk, then
+    # DVD, then OEMDRV disk (attach order). The OS disk is empty on first
+    # boot, so firmware falls through to the DVD to run the installer; once
+    # kickstart writes a bootloader to the OS disk, every later boot finds it
+    # bootable and skips the DVD. Pinning the DVD first here would break that -
+    # every reboot would hit the installer again instead of the OS.
 
     Set-VMNetworkAdapter -VMName $name -StaticMacAddress $Macs[$name]
 
@@ -98,4 +102,4 @@ foreach ($name in $Nodes) {
     Write-Host "[$name] created and started. Static MAC: $($Macs[$name])" -ForegroundColor Green
 }
 
-Write-Host "`nDone. Nodes will DHCP into whatever address is free until their UniFi reservations are added — fix those up once the MACs show up in the client list." -ForegroundColor Cyan
+Write-Host "`nDone. Nodes will DHCP into whatever address is free until their UniFi reservations are added - fix those up once the MACs show up in the client list." -ForegroundColor Cyan
