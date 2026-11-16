@@ -1,0 +1,19 @@
+- name: Install chrony, iSCSI, and NFS client packages
+  ansible.builtin.dnf:
+    name:
+      - chrony
+      - iscsi-initiator-utils
+      - nfs-utils
+    state: present
+
+- name: Enable and start chronyd
+  ansible.builtin.systemd_service:
+    name: chronyd
+    enabled: true
+    state: started
+
+- name: Enable and start iscsid
+  ansible.builtin.systemd_service:
+    name: iscsid
+    enabled: true
+    state: started

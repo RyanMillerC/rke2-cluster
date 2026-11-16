@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 
 $VhdRoot = 'V:\Hyper-V'
 
-$Nodes = @("pico-1", "pico-2", "pico-3")
+$Nodes = @("pico-1.taco.moe", "pico-2.taco.moe", "pico-3.taco.moe")
 
 foreach ($name in $Nodes) {
     $vm = Get-VM -Name $name -ErrorAction SilentlyContinue

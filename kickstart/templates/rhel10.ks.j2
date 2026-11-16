@@ -17,7 +17,7 @@ bootloader --timeout=1
 # Network — DHCP, per-environment NIC name (eth0 sandbox, verify on lab hardware).
 # The node's fixed address comes from a UniFi DHCP reservation keyed to its
 # static MAC, outside the normal DHCP pool — not a static config here.
-network --device={{ nic_name }} --bootproto=dhcp --hostname={{ node_hostname }} --activate --onboot=yes
+network --device={{ nic_name }} --bootproto=dhcp --hostname={{ inventory_hostname }} --activate --onboot=yes
 
 timezone {{ timezone }} --utc
 

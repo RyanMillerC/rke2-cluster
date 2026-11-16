@@ -1,0 +1,8 @@
+# Red Hat Developer Subscription credentials, used by roles/host_prep to
+# register each node with subscription-manager. Fill in and encrypt before
+# running host_prep:
+#   ansible-vault encrypt inventory/sandbox/group_vars/sandbox/vault.yml
+# To edit later: ansible-vault edit inventory/sandbox/group_vars/sandbox/vault.yml
+
+vault_rhsm_username: "CHANGEME"
+vault_rhsm_password: "CHANGEME"

@@ -16,6 +16,8 @@ help:
 	@echo "make render-kickstarts - Render per-node kickstart files from inventory"
 	@echo "make sandbox-create    - Create and start the pico-1/2/3 sandbox VMs on HOST"
 	@echo "make sandbox-delete    - Tear down the pico-1/2/3 sandbox VMs and their VHDs"
+	@echo "make sandbox-wait      - Block until all 3 sandbox nodes answer SSH"
+	@echo "make host-prep         - Run Host Prep (subscription, packages, RKE2 install) on the sandbox nodes"
 	@echo
 	@echo "========================================================================================="
 
@@ -39,3 +41,20 @@ sandbox-delete:
 	scp -o RemoteCommand=none hyperv/Delete-SandboxVMs.ps1 "${HOST}:${REMOTE_TMP}/"
 	${SSH} "powershell -NoProfile -Command \"& '${REMOTE_TMP}\\Delete-SandboxVMs.ps1'\""
 	${SSH} "powershell -NoProfile -Command \"Remove-Item -Recurse -Force '${REMOTE_TMP}' -ErrorAction SilentlyContinue\""
+
+# Block until all 3 sandbox nodes answer SSH - poll instead of guessing how
+# long kickstart install + reboot takes. wait_for_connection retries on its
+# own, so this is a single ansible call, not a shell loop. (Host key checking
+# for the fresh-every-rebuild sandbox nodes is disabled in group_vars, not
+# here, so every ansible/ansible-playbook call against them is covered.)
+.PHONY: sandbox-wait
+sandbox-wait:
+	ansible -i inventory/sandbox/hosts.yml rke2_cluster -m wait_for_connection -a "timeout=600"
+
+# Run Host Prep on the sandbox nodes: RHSM registration, packages, swap/
+# SELinux/firewalld, NetworkManager unmanaged interfaces, RKE2 RPM install.
+# Prompts for the Ansible Vault password (see inventory/sandbox/group_vars/
+# sandbox/vault.yml).
+.PHONY: host-prep
+host-prep:
+	ansible-playbook -i inventory/sandbox/hosts.yml host_prep.yml --ask-vault-pass

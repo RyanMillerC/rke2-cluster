@@ -1,0 +1,8 @@
+- name: Ensure every node resolves all cluster nodes via /etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - rke2_cluster"
+    block: |
+      {% for node in groups['rke2_cluster'] %}
+      {{ hostvars[node].node_ip }} {{ node }} {{ node.split('.')[0] }}
+      {% endfor %}

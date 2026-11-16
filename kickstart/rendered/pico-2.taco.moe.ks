@@ -1,5 +1,5 @@
 #version=RHEL10
-# Kickstart for pico-3 — minimum config only.
+# Kickstart for pico-2.taco.moe — minimum config only.
 # Scope: disk layout + whatever is needed for Ansible to get SSH + sudo access.
 # Everything else (chrony, firewalld, NetworkManager, subscription, iscsi/nfs
 # packages, RKE2 itself) is Ansible's job — see PLAN.md "Host Prep (RHEL)".
@@ -17,7 +17,7 @@ bootloader --timeout=1
 # Network — DHCP, per-environment NIC name (eth0 sandbox, verify on lab hardware).
 # The node's fixed address comes from a UniFi DHCP reservation keyed to its
 # static MAC, outside the normal DHCP pool — not a static config here.
-network --device=eth0 --bootproto=dhcp --hostname=pico-3.taco.moe --activate --onboot=yes
+network --device=eth0 --bootproto=dhcp --hostname=pico-2.taco.moe --activate --onboot=yes
 
 timezone UTC --utc
 

@@ -1,0 +1,10 @@
+# Host Prep (RHEL) - gets nodes from "Ansible can reach it" (kickstart's job)
+# to "ready for RKE2 config". See PLAN.md "Host Prep (RHEL)".
+#
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml host_prep.yml --ask-vault-pass
+
+- name: Prepare RHEL hosts for RKE2
+  hosts: rke2_cluster
+  become: true
+  roles:
+    - host_prep

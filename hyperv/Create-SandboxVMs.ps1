@@ -28,15 +28,15 @@ $SwitchName = 'Lab'
 $DiskSizeGB = 100
 $KickstartDir = $PSScriptRoot
 
-$Nodes = @("pico-1", "pico-2", "pico-3")
+$Nodes = @("pico-1.taco.moe", "pico-2.taco.moe", "pico-3.taco.moe")
 
 # Fixed MACs (Hyper-V's own OUI, last octet matching each node's static IP
 # .91/.92/.93) so the UniFi DHCP reservations survive delete/recreate cycles
 # instead of needing to be redone every time.
 $Macs = @{
-    "pico-1" = "00155D010091"
-    "pico-2" = "00155D010092"
-    "pico-3" = "00155D010093"
+    "pico-1.taco.moe" = "00155D010091"
+    "pico-2.taco.moe" = "00155D010092"
+    "pico-3.taco.moe" = "00155D010093"
 }
 
 $existing = $Nodes | Where-Object { Get-VM -Name $_ -ErrorAction SilentlyContinue }

@@ -1,0 +1,4 @@
+- name: Assert SELinux is enforcing
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
