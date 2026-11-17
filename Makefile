@@ -1,12 +1,14 @@
 HOST := beef.taco.moe
 SSH := ssh -o RemoteCommand=none ${HOST}
 REMOTE_TMP := C:\Users\Ryan\AppData\Local\Temp\rke2-sandbox
+VAULT_PASS_FILE := ${HOME}/.rke2-vault-pass
 
 .PHONY: help
 help:
 	@echo "=== VARIABLES ==========================================================================="
 	@echo
-	@echo "   HOST: ${HOST}"
+	@echo "   HOST:            ${HOST}"
+	@echo "   VAULT_PASS_FILE: ${VAULT_PASS_FILE}"
 	@echo
 	@echo "========================================================================================="
 	@echo
@@ -53,8 +55,8 @@ sandbox-wait:
 
 # Run Host Prep on the sandbox nodes: RHSM registration, packages, swap/
 # SELinux/firewalld, NetworkManager unmanaged interfaces, RKE2 RPM install.
-# Prompts for the Ansible Vault password (see inventory/sandbox/group_vars/
-# sandbox/vault.yml).
+# Reads the Ansible Vault password from VAULT_PASS_FILE (see
+# inventory/sandbox/group_vars/sandbox/vault.yml).
 .PHONY: host-prep
 host-prep:
-	ansible-playbook -i inventory/sandbox/hosts.yml host_prep.yml --ask-vault-pass
+	ansible-playbook -i inventory/sandbox/hosts.yml host_prep.yml --vault-password-file ${VAULT_PASS_FILE}

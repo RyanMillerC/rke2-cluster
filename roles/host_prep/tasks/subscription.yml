@@ -1,6 +1,7 @@
 - name: Register with Red Hat Subscription Management
+  # No auto_attach: RHEL 10 is Simple Content Access only - subscription-manager
+  # has no "attach" subcommand anymore, registration alone grants repo access.
   community.general.redhat_subscription:
     state: present
     username: "{{ rhsm_username }}"
     password: "{{ rhsm_password }}"
-    auto_attach: true
