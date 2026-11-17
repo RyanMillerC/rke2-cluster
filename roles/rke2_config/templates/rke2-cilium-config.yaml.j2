@@ -1,0 +1,21 @@
+# Managed by Ansible (roles/rke2_config) - see PLAN.md "Cilium (via RKE2
+# HelmChartConfig)". Name/namespace must match RKE2's embedded rke2-cilium
+# HelmChart for RKE2 to merge these values in.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-cilium
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    kubeProxyReplacement: true
+    k8sServiceHost: "127.0.0.1"
+    k8sServicePort: "6443"
+    l2announcements:
+      enabled: true
+    hubble:
+      enabled: true
+      relay:
+        enabled: true
+      ui:
+        enabled: true

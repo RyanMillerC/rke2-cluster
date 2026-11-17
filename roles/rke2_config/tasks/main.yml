@@ -1,0 +1,5 @@
+# RKE2 Config (PLAN.md) - written to disk before RKE2's first start. This
+# role never starts rke2-server; that's Build Sequence step 4.
+- import_tasks: config.yml
+- import_tasks: kube_vip.yml
+- import_tasks: cilium.yml

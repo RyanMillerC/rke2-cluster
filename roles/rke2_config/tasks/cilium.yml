@@ -1,0 +1,5 @@
+- name: Write Cilium HelmChartConfig override
+  ansible.builtin.template:
+    src: rke2-cilium-config.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
+    mode: "0644"

@@ -1,0 +1,16 @@
+### Managed by Ansible (roles/rke2_config) - see PLAN.md "RKE2 Config".
+cni: cilium
+disable-kube-proxy: true
+embedded-registry: true
+etcd-expose-metrics: true
+kube-scheduler-arg:
+  - bind-address=0.0.0.0
+kube-controller-manager-arg:
+  - bind-address=0.0.0.0
+tls-san:
+  - "{{ api_vip }}"
+  - "{{ api_fqdn }}"
+token: "{{ rke2_token }}"
+{% if 'rke2_first_server' not in group_names %}
+server: "https://{{ api_vip }}:9345"
+{% endif %}

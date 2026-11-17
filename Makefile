@@ -20,6 +20,7 @@ help:
 	@echo "make sandbox-delete    - Tear down the pico-1/2/3 sandbox VMs and their VHDs"
 	@echo "make sandbox-wait      - Block until all 3 sandbox nodes answer SSH"
 	@echo "make host-prep         - Run Host Prep (subscription, packages, RKE2 install) on the sandbox nodes"
+	@echo "make rke2-config       - Write RKE2 config, kube-vip, and Cilium HelmChartConfig to the sandbox nodes"
 	@echo
 	@echo "========================================================================================="
 
@@ -60,3 +61,11 @@ sandbox-wait:
 .PHONY: host-prep
 host-prep:
 	ansible-playbook -i inventory/sandbox/hosts.yml host_prep.yml --vault-password-file ${VAULT_PASS_FILE}
+
+# Write RKE2 server config, the kube-vip static pod, and the Cilium
+# HelmChartConfig override to the sandbox nodes. Does not start rke2-server.
+# Reads the Ansible Vault password from VAULT_PASS_FILE (see
+# inventory/sandbox/group_vars/sandbox/vault.yml).
+.PHONY: rke2-config
+rke2-config:
+	ansible-playbook -i inventory/sandbox/hosts.yml rke2_config.yml --vault-password-file ${VAULT_PASS_FILE}

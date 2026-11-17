@@ -1,0 +1,23 @@
+- name: Ensure RKE2 agent pod-manifests directory exists
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/agent/pod-manifests
+    state: directory
+    mode: "0755"
+
+- name: Ensure RKE2 server manifests directory exists
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/server/manifests
+    state: directory
+    mode: "0755"
+
+- name: Write kube-vip static pod manifest
+  ansible.builtin.template:
+    src: kube-vip-static-pod.yaml.j2
+    dest: /var/lib/rancher/rke2/agent/pod-manifests/kube-vip.yaml
+    mode: "0644"
+
+- name: Write kube-vip RBAC manifest
+  ansible.builtin.copy:
+    src: kube-vip-rbac.yaml
+    dest: /var/lib/rancher/rke2/server/manifests/kube-vip-rbac.yaml
+    mode: "0644"

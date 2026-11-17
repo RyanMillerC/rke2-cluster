@@ -1,0 +1,11 @@
+# RKE2 Config (PLAN.md) - writes server config, kube-vip static pod, and the
+# Cilium HelmChartConfig override to disk, before RKE2's first start. Does
+# not start rke2-server; see PLAN.md Build Sequence step 4.
+#
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml rke2_config.yml --vault-password-file ~/.rke2-vault-pass
+
+- name: Write RKE2 config, kube-vip, and Cilium manifests
+  hosts: rke2_cluster
+  become: true
+  roles:
+    - rke2_config
