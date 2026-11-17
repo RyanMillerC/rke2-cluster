@@ -1,0 +1,41 @@
+# Enable and start rke2-server, then wait for this node to register as
+# Ready in its own local API server. Called from two separate plays in
+# rke2_start.yml (first server, then joiners) so ordering is enforced by
+# play order, not by conditionals within a single play.
+- name: Enable and start rke2-server
+  ansible.builtin.systemd:
+    name: rke2-server
+    enabled: true
+    state: started
+
+- name: Wait for the local Kubernetes API to respond
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 6443
+    timeout: 300
+
+- name: Wait for this node to register as Ready
+  ansible.builtin.command:
+    argv:
+      - /var/lib/rancher/rke2/bin/kubectl
+      - --kubeconfig
+      - /etc/rancher/rke2/rke2.yaml
+      - get
+      - node
+      - "{{ inventory_hostname }}"
+      - -o
+      - jsonpath={.status.conditions[?(@.type=="Ready")].status}
+  register: node_ready
+  until: node_ready.stdout == "True"
+  retries: 60
+  delay: 10
+  changed_when: false
+
+- name: Show cluster node status
+  ansible.builtin.command:
+    cmd: /var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide
+  register: node_status
+  changed_when: false
+
+- ansible.builtin.debug:
+    var: node_status.stdout_lines

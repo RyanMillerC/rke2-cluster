@@ -1,0 +1,17 @@
+# Start the RKE2 cluster (PLAN.md Build Sequence steps 4-5). Two plays, run
+# in order: the first server initializes the cluster, then servers 2 and 3
+# join through the API VIP (port 9345) once it exists.
+#
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml rke2_start.yml --vault-password-file ~/.rke2-vault-pass
+
+- name: Start the first server and initialize the cluster
+  hosts: rke2_first_server
+  become: true
+  roles:
+    - rke2_start
+
+- name: Join servers 2 and 3 through the API VIP
+  hosts: rke2_cluster:!rke2_first_server
+  become: true
+  roles:
+    - rke2_start

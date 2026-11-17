@@ -21,6 +21,7 @@ help:
 	@echo "make sandbox-wait      - Block until all 3 sandbox nodes answer SSH"
 	@echo "make host-prep         - Run Host Prep (subscription, packages, RKE2 install) on the sandbox nodes"
 	@echo "make rke2-config       - Write RKE2 config, kube-vip, and Cilium HelmChartConfig to the sandbox nodes"
+	@echo "make rke2-start        - Start the first server, then join servers 2 and 3 through the API VIP"
 	@echo
 	@echo "========================================================================================="
 
@@ -69,3 +70,10 @@ host-prep:
 .PHONY: rke2-config
 rke2-config:
 	ansible-playbook -i inventory/sandbox/hosts.yml rke2_config.yml --vault-password-file ${VAULT_PASS_FILE}
+
+# Start the first server and initialize the cluster, then join servers 2
+# and 3 through the API VIP. Reads the Ansible Vault password from
+# VAULT_PASS_FILE (not strictly needed by this playbook, kept for consistency).
+.PHONY: rke2-start
+rke2-start:
+	ansible-playbook -i inventory/sandbox/hosts.yml rke2_start.yml --vault-password-file ${VAULT_PASS_FILE}
