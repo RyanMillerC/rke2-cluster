@@ -1,0 +1,32 @@
+# Block until all RKE2 nodes report Ready. Useful after `rke2-start`/
+# `configure`, or after a node reboot, to confirm the cluster actually
+# converged rather than just that the playbook ran.
+#
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml cluster_wait.yml --vault-password-file ~/.rke2-vault-pass
+
+- name: Wait for all nodes to report Ready
+  hosts: rke2_first_server
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for all nodes to report Ready
+      ansible.builtin.command:
+        argv:
+          - /var/lib/rancher/rke2/bin/kubectl
+          - --kubeconfig
+          - /etc/rancher/rke2/rke2.yaml
+          - wait
+          - --for=condition=Ready
+          - nodes
+          - --all
+          - --timeout=600s
+      changed_when: false
+
+    - name: Show cluster node status
+      ansible.builtin.command:
+        cmd: /var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide
+      register: node_status
+      changed_when: false
+
+    - ansible.builtin.debug:
+        var: node_status.stdout_lines
