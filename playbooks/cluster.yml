@@ -5,7 +5,7 @@
 # idempotent, so rerunning this against a live cluster is safe. Assumes the
 # nodes already answer SSH - run `make sandbox-wait` first after a rebuild.
 #
-# Usage: ansible-playbook -i inventory/sandbox/hosts.yml cluster.yml --vault-password-file ~/.rke2-vault-pass
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml playbooks/cluster.yml --vault-password-file ~/.rke2-vault-pass
 
 - import_playbook: host_prep.yml
 - import_playbook: rke2_config.yml

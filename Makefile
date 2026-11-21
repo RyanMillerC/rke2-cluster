@@ -21,6 +21,7 @@ help:
 	@echo "make sandbox-wait      - Block until all 3 sandbox nodes answer SSH"
 	@echo "make configure         - Configure the OS and RKE2 end-to-end on the sandbox nodes (idempotent)"
 	@echo "make cluster-wait      - Block until all RKE2 nodes report Ready"
+	@echo "make kubeconfig        - Fetch KUBECONFIG, pointed at the API VIP"
 	@echo
 	@echo "========================================================================================="
 
@@ -73,7 +74,7 @@ sandbox-wait:
 # inventory/sandbox/group_vars/sandbox/vault.yml).
 .PHONY: configure
 configure: sandbox-wait
-	ansible-playbook -i inventory/sandbox/hosts.yml cluster.yml --vault-password-file ${VAULT_PASS_FILE}
+	ansible-playbook -i inventory/sandbox/hosts.yml playbooks/cluster.yml --vault-password-file ${VAULT_PASS_FILE}
 	${MAKE} cluster-wait
 
 # Block until all RKE2 nodes report Ready - confirms the cluster actually
@@ -81,4 +82,11 @@ configure: sandbox-wait
 # after a node reboot too.
 .PHONY: cluster-wait
 cluster-wait:
-	ansible-playbook -i inventory/sandbox/hosts.yml cluster_wait.yml --vault-password-file ${VAULT_PASS_FILE}
+	ansible-playbook -i inventory/sandbox/hosts.yml playbooks/cluster_wait.yml --vault-password-file ${VAULT_PASS_FILE}
+
+# Fetch the admin kubeconfig from the first server and write it to
+# KUBECONFIG at the repo root (gitignored), with the server URL rewritten
+# from the node's loopback address to the API VIP FQDN.
+.PHONY: kubeconfig
+kubeconfig:
+	ansible-playbook -i inventory/sandbox/hosts.yml playbooks/kubeconfig.yml --vault-password-file ${VAULT_PASS_FILE}

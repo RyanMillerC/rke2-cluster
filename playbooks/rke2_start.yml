@@ -2,7 +2,7 @@
 # in order: the first server initializes the cluster, then servers 2 and 3
 # join through the API VIP (port 9345) once it exists.
 #
-# Usage: ansible-playbook -i inventory/sandbox/hosts.yml rke2_start.yml --vault-password-file ~/.rke2-vault-pass
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml playbooks/rke2_start.yml --vault-password-file ~/.rke2-vault-pass
 
 - name: Start the first server and initialize the cluster
   hosts: rke2_first_server

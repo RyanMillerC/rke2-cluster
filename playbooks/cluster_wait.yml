@@ -2,7 +2,7 @@
 # `configure`, or after a node reboot, to confirm the cluster actually
 # converged rather than just that the playbook ran.
 #
-# Usage: ansible-playbook -i inventory/sandbox/hosts.yml cluster_wait.yml --vault-password-file ~/.rke2-vault-pass
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml playbooks/cluster_wait.yml --vault-password-file ~/.rke2-vault-pass
 
 - name: Wait for all nodes to report Ready
   hosts: rke2_first_server
