@@ -1,0 +1,23 @@
+- name: Ensure RKE2 server manifests directory exists
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/server/manifests
+    state: directory
+    mode: "0755"
+
+- name: Write Argo CD HelmChart manifest
+  ansible.builtin.template:
+    src: argocd-helmchart.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/argocd.yaml
+    mode: "0644"
+
+- name: Write Argo CD AppProjects
+  ansible.builtin.template:
+    src: argocd-projects.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/argocd-projects.yaml
+    mode: "0644"
+
+- name: Write Argo CD root Application
+  ansible.builtin.template:
+    src: argocd-root-app.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/argocd-root-app.yaml
+    mode: "0644"

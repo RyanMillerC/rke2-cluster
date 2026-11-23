@@ -1,12 +1,14 @@
-# Full OS + RKE2 configuration (PLAN.md Build Sequence steps 2-5). Chains
-# Host Prep, RKE2 Config, and RKE2 Start into one run so a freshly created
-# set of VMs - or an already-configured cluster - converges to the same
-# state with a single command. Each imported playbook's underlying role is
-# idempotent, so rerunning this against a live cluster is safe. Assumes the
-# nodes already answer SSH - run `make sandbox-wait` first after a rebuild.
+# Full OS + RKE2 + Argo CD bootstrap (PLAN.md Build Sequence steps 2-6).
+# Chains Host Prep, RKE2 Config, RKE2 Start, and the Argo CD bootstrap into
+# one run so a freshly created set of VMs - or an already-configured
+# cluster - converges to the same state with a single command. Each
+# imported playbook's underlying role is idempotent, so rerunning this
+# against a live cluster is safe. Assumes the nodes already answer SSH -
+# run `make sandbox-wait` first after a rebuild.
 #
 # Usage: ansible-playbook -i inventory/sandbox/hosts.yml playbooks/cluster.yml --vault-password-file ~/.rke2-vault-pass
 
 - import_playbook: host_prep.yml
 - import_playbook: rke2_config.yml
 - import_playbook: rke2_start.yml
+- import_playbook: argocd.yml

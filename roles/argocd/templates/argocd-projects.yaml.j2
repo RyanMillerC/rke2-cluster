@@ -1,0 +1,35 @@
+# Managed by Ansible (roles/argocd) - see PLAN.md "App delivery" decision.
+# These are Argo CD CustomResources, so RKE2's manifest controller can't
+# apply them until the HelmChart above has installed Argo's CRDs - it
+# retries on its own until that happens, no ordering needed here.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Cluster platform components (storage, cert-manager, Vault, ESO, Traefik config)
+  sourceRepos:
+    - "{{ argocd_git_repo_url }}"
+  destinations:
+    - namespace: "*"
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  description: Application workloads
+  sourceRepos:
+    - "{{ argocd_git_repo_url }}"
+  destinations:
+    - namespace: "*"
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

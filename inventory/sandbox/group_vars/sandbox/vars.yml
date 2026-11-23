@@ -35,3 +35,16 @@ rke2_token: "{{ vault_rke2_token }}"
 # Latest stable release as of 2026-11-16, checked via `gh api
 # repos/kube-vip/kube-vip/releases/latest` - check for newer before reuse.
 kube_vip_version: "v1.3.1"
+
+# Build Sequence step 6 (Argo CD bootstrap) - PLAN.md "App delivery"
+# decision. Separate repo from this one - rke2 bootstraps the cluster,
+# rke2-gitops is everything Argo syncs (platform config + apps). Repo is
+# empty as of 2026-11-23, so the root Application will sit in a sync error
+# until argocd_git_repo_path ("bootstrap/" containing one Application
+# per PLAN.md sync-wave component) exists there. Chart version is the
+# latest argo-helm release as of 2026-11-23, checked via `gh api
+# repos/argoproj/argo-helm/releases` - check for newer before reuse.
+argocd_version: "10.18.3"
+argocd_git_repo_url: "https://github.com/RyanMillerC/rke2-gitops.git"
+argocd_git_repo_revision: HEAD
+argocd_git_repo_path: "bootstrap"

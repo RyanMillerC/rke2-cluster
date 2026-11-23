@@ -19,7 +19,7 @@ help:
 	@echo "make sandbox-create    - Create and start the pico-1/2/3 sandbox VMs on HOST"
 	@echo "make sandbox-delete    - Tear down the pico-1/2/3 sandbox VMs and their VHDs"
 	@echo "make sandbox-wait      - Block until all 3 sandbox nodes answer SSH"
-	@echo "make configure         - Configure the OS and RKE2 end-to-end on the sandbox nodes (idempotent)"
+	@echo "make configure         - Configure the OS, RKE2, and Argo CD end-to-end on the sandbox nodes (idempotent)"
 	@echo "make cluster-wait      - Block until all RKE2 nodes report Ready"
 	@echo "make kubeconfig        - Fetch KUBECONFIG, pointed at the API VIP"
 	@echo
@@ -64,13 +64,13 @@ sandbox-delete:
 sandbox-wait:
 	ansible -i inventory/sandbox/hosts.yml rke2_cluster -m wait_for_connection -a "timeout=600" --vault-password-file ${VAULT_PASS_FILE}
 
-# Configure the OS and RKE2 end-to-end on the sandbox nodes: Host Prep,
-# RKE2 Config, and RKE2 Start in sequence (PLAN.md Build Sequence steps
-# 2-5), then block until all nodes report Ready. Idempotent - safe to
-# rerun against nodes fresh out of `sandbox-create` or against an
-# already-configured cluster. Depends on `sandbox-wait` since nodes fresh
-# out of `sandbox-create` aren't reachable yet. Reads the Ansible Vault
-# password from VAULT_PASS_FILE (see
+# Configure the OS, RKE2, and Argo CD end-to-end on the sandbox nodes: Host
+# Prep, RKE2 Config, RKE2 Start, and the Argo CD bootstrap in sequence
+# (PLAN.md Build Sequence steps 2-6), then block until all nodes report
+# Ready. Idempotent - safe to rerun against nodes fresh out of
+# `sandbox-create` or against an already-configured cluster. Depends on
+# `sandbox-wait` since nodes fresh out of `sandbox-create` aren't reachable
+# yet. Reads the Ansible Vault password from VAULT_PASS_FILE (see
 # inventory/sandbox/group_vars/sandbox/vault.yml).
 .PHONY: configure
 configure: sandbox-wait

@@ -1,0 +1,16 @@
+# Argo CD bootstrap (PLAN.md Build Sequence step 6). Writes a HelmChart
+# manifest (RKE2's own Helm controller installs Argo CD) plus the
+# platform/apps AppProjects and one root Application into RKE2's server
+# manifests directory. Argo CD then takes over syncing everything else -
+# see PLAN.md's sync waves. Imported by cluster.yml as the last step of
+# `make configure` - writing the manifests is idempotent and safe even
+# before argocd_git_repo_url is set to a real repo; the root Application
+# just sits in a sync-error state until then.
+#
+# Usage: ansible-playbook -i inventory/sandbox/hosts.yml playbooks/argocd.yml --vault-password-file ~/.rke2-vault-pass
+
+- name: Bootstrap Argo CD
+  hosts: rke2_cluster
+  become: true
+  roles:
+    - argocd

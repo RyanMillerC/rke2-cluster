@@ -1,0 +1,4 @@
+# Argo CD bootstrap (PLAN.md Build Sequence step 6) - written as RKE2 server
+# manifests so RKE2's own Helm controller installs Argo CD; Argo then takes
+# over syncing everything else via the sync waves in PLAN.md.
+- import_tasks: argocd.yml

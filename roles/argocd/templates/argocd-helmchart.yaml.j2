@@ -1,0 +1,15 @@
+# Managed by Ansible (roles/argocd) - see PLAN.md "Argo CD" / "App delivery".
+# RKE2's bundled Helm controller (helm.cattle.io) installs the chart; no
+# `helm` CLI involved. Default chart values apply (no HA, ClusterIP service,
+# access via `kubectl port-forward` until Argo syncs its own Traefik route).
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argo-cd
+  namespace: kube-system
+spec:
+  repo: https://argoproj.github.io/argo-helm
+  chart: argo-cd
+  version: "{{ argocd_version }}"
+  targetNamespace: argocd
+  createNamespace: true
