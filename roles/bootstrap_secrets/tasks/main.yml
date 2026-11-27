@@ -1,0 +1,5 @@
+# Pre-Vault Bootstrap Secrets (PLAN.md "Bootstrap Secrets") - templates the
+# AWS KMS, Synology CSI, and cert-manager DNS secrets as static manifests so
+# RKE2's own deploy controller applies them, same mechanism roles/argocd
+# uses to bootstrap Argo CD.
+- import_tasks: bootstrap_secrets.yml
