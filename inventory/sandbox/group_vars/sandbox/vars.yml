@@ -32,7 +32,7 @@ rhsm_password: REPLACED_BY_ANSIBLE_VAULT
 rke2_version: "v1.36.6+rke2r1"
 
 # Network Plan in PLAN.md.
-api_vip: "192.168.0.98"
+api_vip: "192.168.0.88"
 api_fqdn: "api.pico.taco.moe"
 
 # Shared RKE2 cluster join secret - same value on all 3 nodes, set by Ryan
