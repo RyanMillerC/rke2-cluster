@@ -2,6 +2,7 @@ HOST := beef.taco.moe
 SSH := ssh -o RemoteCommand=none ${HOST}
 REMOTE_TMP := C:\Users\Ryan\AppData\Local\Temp\rke2-sandbox
 VAULT_PASS_FILE := ${HOME}/.rke2-vault-pass
+VAULT_FILE := inventory/sandbox/group_vars/sandbox/vault.yml
 
 .PHONY: help
 help:
@@ -22,6 +23,7 @@ help:
 	@echo "make configure         - Configure the OS, RKE2, and Argo CD end-to-end on the sandbox nodes (idempotent)"
 	@echo "make cluster-wait      - Block until all RKE2 nodes report Ready"
 	@echo "make kubeconfig        - Fetch KUBECONFIG, pointed at the API VIP"
+	@echo "make vault-edit        - Edit the encrypted Ansible Vault file"
 	@echo
 	@echo "========================================================================================="
 
@@ -90,3 +92,8 @@ cluster-wait:
 .PHONY: kubeconfig
 kubeconfig:
 	ansible-playbook -i inventory/sandbox/hosts.yml playbooks/kubeconfig.yml --vault-password-file ${VAULT_PASS_FILE}
+
+# Decrypt the Ansible Vault file into $EDITOR and re-encrypt it on save
+.PHONY: vault-edit
+vault-edit:
+	ansible-vault edit ${VAULT_FILE} --vault-password-file ${VAULT_PASS_FILE}
