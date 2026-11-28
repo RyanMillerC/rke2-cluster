@@ -74,9 +74,8 @@ argocd_git_repo_path: "bootstrap"
 # "vault.yml" sorts after "vars.yml" alphabetically within
 # group_vars/sandbox/, so Ansible's directory-merge gives it the last word
 # for same-named vars. Don't rename either file without preserving that
-# order. Namespaces are provisional for Synology/cert-manager - finalize
-# against the real driver manifests when those waves are built in
-# rke2-gitops.
+# order. The cert-manager namespace is provisional - finalize it when that
+# wave is built in rke2-gitops.
 
 # Vault (AWS KMS auto-unseal) - Ansible-forever, never hands off to ESO.
 vault_namespace: vault
@@ -84,7 +83,9 @@ vault_aws_kms_access_key_id: REPLACED_BY_ANSIBLE_VAULT
 vault_aws_kms_secret_access_key: REPLACED_BY_ANSIBLE_VAULT
 
 # Synology CSI - genesis only, hands off to ESO once it exists.
-synology_csi_namespace: kube-system
+synology_csi_namespace: synology-csi
+synology_csi_host: nas.taco.moe
+synology_csi_port: 5001
 synology_csi_username: REPLACED_BY_ANSIBLE_VAULT
 synology_csi_password: REPLACED_BY_ANSIBLE_VAULT
 
